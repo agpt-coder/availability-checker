@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "availability-checker"
+version = "0.1.0"
+description = "To develop a function that returns the real-time availability of professionals, updating based on current activity or schedule, a system has been conceptualized using a tech stack involving Python, FastAPI, Prisma, and PostgreSQL. The requirements gathered indicate that the system should cater to professions such as healthcare professionals, emergency services personnel, IT support specialists, and customer service representatives, which necessitates a high degree of reliability and real-time responsiveness. "
+authors = ["AutoGPT <info@agpt.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+bcrypt = "^3.2.0"
+fastapi = "^0.78.0"
+httpx = "^0.21.3"
+passlib = {version = "^1.7.4", extras = ["bcrypt"]}
+prisma = "*"
+pydantic = "*"
+python-jose = {version = "^3.3.0", extras = ["cryptography"]}
+uvicorn = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

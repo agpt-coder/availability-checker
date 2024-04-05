@@ -1,0 +1,145 @@
+// datasource db defines the database connection settings.
+// It is configured for PostgreSQL and uses an environment variable for the connection URL.
+// The 'extensions' feature enables the use of PostgreSQL-specific data types.
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// generator db configures Prisma Client settings.
+// It is set up to use Prisma Client Python with asyncio interface and specific features.
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+  previewFeatures      = ["postgresqlExtensions"]
+}
+
+model User {
+  id                String             @id @default(dbgenerated("gen_random_uuid()"))
+  email             String             @unique
+  hashedPassword    String
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  lastLogin         DateTime?
+  role              Role               @default(PROFESSIONAL)
+  profiles          Profile[]
+  sessions          Session[]
+  availabilitySlots AvailabilitySlot[]
+  calendarEvents    CalendarEvent[]
+  Subscription      Subscription[]
+}
+
+model Profile {
+  id         String     @id @default(dbgenerated("gen_random_uuid()"))
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  firstName  String
+  lastName   String
+  profession Profession
+  userId     String
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id           String   @id @default(dbgenerated("gen_random_uuid()"))
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  expiresAt    DateTime
+  refreshToken String   @unique
+  valid        Boolean  @default(true)
+  userId       String
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilitySlot {
+  id        String             @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String
+  startTime DateTime
+  endTime   DateTime
+  status    AvailabilityStatus
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CalendarEvent {
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId      String
+  externalId  String
+  summary     String
+  description String?
+  start       DateTime
+  end         DateTime
+  location    String?
+  url         String?
+  syncedAt    DateTime @default(now())
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id               String           @id @default(dbgenerated("gen_random_uuid()"))
+  userId           String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  startsAt         DateTime
+  expiresAt        DateTime
+  subscriptionPlan SubscriptionPlan
+  active           Boolean          @default(true)
+
+  User    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Payment Payment[]
+}
+
+model Payment {
+  id             String        @id @default(dbgenerated("gen_random_uuid()"))
+  subscriptionId String
+  amount         Float
+  createdAt      DateTime      @default(now())
+  paymentStatus  PaymentStatus
+  paymentMethod  PaymentMethod
+
+  Subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  PROFESSIONAL
+  ADMINISTRATOR
+  CLIENT
+}
+
+enum Profession {
+  HEALTHCARE_PROFESSIONAL
+  EMERGENCY_SERVICES_PERSONNEL
+  IT_SUPPORT_SPECIALIST
+  CUSTOMER_SERVICE_REPRESENTATIVE
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  UNAVAILABLE
+  IN_A_MEETING
+  ON_A_BREAK
+  EMERGENCY_ONLY
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+  ENTERPRISE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+}
+
